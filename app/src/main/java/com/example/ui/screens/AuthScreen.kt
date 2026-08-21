@@ -1,9 +1,11 @@
 package com.example.ui.screens
 
 import androidx.compose.animation.*
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -17,6 +19,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -31,6 +34,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.fragment.app.FragmentActivity
 import com.example.R
+import com.example.security.BiometricStatus
 import com.example.ui.theme.*
 import com.example.viewmodel.AuthScreenState
 import com.example.viewmodel.AuthUiState
@@ -48,9 +52,14 @@ fun AuthScreen(
         activity?.let { authViewModel.checkBiometricAvailability(it) }
     }
 
-    // Auto-prompt Fingerprint / Face ID if enabled and available
-    LaunchedEffect(state.isBiometricAvailable, state.autoBiometricEnabled, activity) {
-        if (state.isBiometricAvailable && state.autoBiometricEnabled && !hasAutoPromptedBiometric && activity != null) {
+    // Auto-prompt Fingerprint / Face ID if on LaunchChallenge screen and biometric is enabled/available
+    LaunchedEffect(state.screenState, state.isBiometricAvailable, state.autoBiometricEnabled, activity) {
+        if (state.screenState is AuthScreenState.LaunchChallenge &&
+            state.isBiometricAvailable &&
+            state.autoBiometricEnabled &&
+            !hasAutoPromptedBiometric &&
+            activity != null
+        ) {
             hasAutoPromptedBiometric = true
             authViewModel.triggerBiometricAuth(activity)
         }
@@ -126,7 +135,7 @@ fun AuthScreen(
                 color = MaterialTheme.colorScheme.primary
             )
 
-            Spacer(Modifier.height(22.dp))
+            Spacer(Modifier.height(20.dp))
 
             // Main Auth Card
             Card(
@@ -138,13 +147,31 @@ fun AuthScreen(
             ) {
                 Column(modifier = Modifier.padding(24.dp)) {
                     when (val screen = state.screenState) {
+                        is AuthScreenState.LaunchChallenge -> {
+                            BiometricChallengeLaunchView(
+                                state = state,
+                                onScanBiometric = {
+                                    activity?.let { authViewModel.triggerBiometricAuth(it) }
+                                },
+                                onUsePassword = {
+                                    authViewModel.setScreenState(AuthScreenState.Login)
+                                },
+                                onBypassDemo = {
+                                    authViewModel.bypassBiometricForDemo()
+                                }
+                            )
+                        }
+
                         is AuthScreenState.Login -> {
                             LoginView(
                                 state = state,
                                 onEmailChange = authViewModel::onEmailChanged,
                                 onPasswordChange = authViewModel::onPasswordChanged,
                                 onSignIn = authViewModel::signInWithPassword,
-                                onBiometricClick = { activity?.let { authViewModel.triggerBiometricAuth(it) } },
+                                onBiometricClick = {
+                                    authViewModel.setScreenState(AuthScreenState.LaunchChallenge)
+                                    activity?.let { authViewModel.triggerBiometricAuth(it) }
+                                },
                                 onForgotPassword = { authViewModel.setScreenState(AuthScreenState.ForgotPhone) },
                                 onSignUp = { authViewModel.setScreenState(AuthScreenState.SignUp) }
                             )
@@ -186,6 +213,203 @@ fun AuthScreen(
                     }
                 }
             }
+        }
+    }
+}
+
+@Composable
+fun BiometricChallengeLaunchView(
+    state: AuthUiState,
+    onScanBiometric: () -> Unit,
+    onUsePassword: () -> Unit,
+    onBypassDemo: () -> Unit
+) {
+    val infiniteTransition = rememberInfiniteTransition(label = "biometric_pulse")
+    val pulseScale by infiniteTransition.animateFloat(
+        initialValue = 0.95f,
+        targetValue = 1.08f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(1200, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "pulse_scale"
+    )
+
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            Icon(Icons.Default.Security, contentDescription = null, tint = CoralPrimary, modifier = Modifier.size(18.dp))
+            Text(
+                text = "SECURITY CHALLENGE",
+                fontSize = 11.sp,
+                fontFamily = FontFamily.Monospace,
+                fontWeight = FontWeight.Bold,
+                color = CoralPrimary,
+                letterSpacing = 1.sp
+            )
+        }
+
+        Spacer(Modifier.height(8.dp))
+
+        Text(
+            text = "Biometric Verification",
+            fontSize = 20.sp,
+            fontWeight = FontWeight.ExtraBold,
+            color = MaterialTheme.colorScheme.onSurface
+        )
+
+        Text(
+            text = "Verify your fingerprint or face scan to access your real estate deals & skip traces.",
+            fontSize = 12.sp,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 6.dp)
+        )
+
+        Spacer(Modifier.height(18.dp))
+
+        // Animated Scanner Ring
+        Box(
+            modifier = Modifier
+                .size(110.dp)
+                .scale(pulseScale)
+                .clip(CircleShape)
+                .background(
+                    Brush.radialGradient(
+                        colors = listOf(
+                            CoralPrimary.copy(alpha = 0.25f),
+                            CyanAccent.copy(alpha = 0.12f),
+                            Color.Transparent
+                        )
+                    )
+                )
+                .border(2.dp, Brush.linearGradient(listOf(CoralPrimary, CyanAccent, GoldAccent)), CircleShape)
+                .clickable { onScanBiometric() },
+            contentAlignment = Alignment.Center
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(76.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.surfaceVariant),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Fingerprint,
+                    contentDescription = "Fingerprint sensor",
+                    tint = CoralPrimary,
+                    modifier = Modifier.size(44.dp)
+                )
+            }
+        }
+
+        Spacer(Modifier.height(18.dp))
+
+        // User Account Chip
+        Surface(
+            shape = RoundedCornerShape(12.dp),
+            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f),
+            border = CardDefaults.outlinedCardBorder()
+        ) {
+            Row(
+                modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Icon(Icons.Default.AccountCircle, contentDescription = null, tint = CyanAccent, modifier = Modifier.size(18.dp))
+                Column {
+                    Text(
+                        text = state.currentAccount?.fullName ?: "Enterprise User",
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Text(
+                        text = state.currentAccount?.email ?: state.emailInput,
+                        fontSize = 10.sp,
+                        fontFamily = FontFamily.Monospace,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+        }
+
+        if (state.errorMessage != null) {
+            Spacer(Modifier.height(12.dp))
+            Surface(
+                color = SleekAlertRedDim,
+                shape = RoundedCornerShape(12.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Row(
+                    modifier = Modifier.padding(10.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    Icon(Icons.Default.ErrorOutline, contentDescription = null, tint = SleekAlertRed, modifier = Modifier.size(16.dp))
+                    Text(
+                        text = state.errorMessage,
+                        color = SleekAlertRed,
+                        fontSize = 11.sp,
+                        lineHeight = 15.sp
+                    )
+                }
+            }
+        }
+
+        Spacer(Modifier.height(18.dp))
+
+        // Primary Action: Scan Fingerprint / Face ID
+        Button(
+            onClick = onScanBiometric,
+            shape = RoundedCornerShape(16.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = CoralPrimary,
+                contentColor = Color.White
+            ),
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(50.dp)
+                .testTag("launch_scan_biometric_btn")
+        ) {
+            Icon(Icons.Default.Fingerprint, contentDescription = null, modifier = Modifier.size(20.dp))
+            Spacer(Modifier.width(8.dp))
+            Text("Scan Fingerprint / Face ID", fontWeight = FontWeight.Bold, fontSize = 14.sp)
+        }
+
+        Spacer(Modifier.height(10.dp))
+
+        // Secondary Action: Enter Password
+        OutlinedButton(
+            onClick = onUsePassword,
+            shape = RoundedCornerShape(16.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(48.dp)
+                .testTag("launch_enter_password_btn")
+        ) {
+            Icon(Icons.Default.Lock, contentDescription = null, modifier = Modifier.size(18.dp))
+            Spacer(Modifier.width(8.dp))
+            Text("Sign In with Password / PIN", fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+        }
+
+        Spacer(Modifier.height(8.dp))
+
+        // Demo Unlock Fallback (for testing environments)
+        TextButton(
+            onClick = onBypassDemo,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text(
+                "Quick Unlock (Demo / Emulator)",
+                fontSize = 11.sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
         }
     }
 }
@@ -297,24 +521,22 @@ fun LoginView(
         }
     }
 
-    if (state.isBiometricAvailable) {
-        Spacer(Modifier.height(12.dp))
-        Button(
-            onClick = onBiometricClick,
-            shape = RoundedCornerShape(16.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = MaterialTheme.colorScheme.primaryContainer,
-                contentColor = MaterialTheme.colorScheme.onPrimaryContainer
-            ),
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(50.dp)
-                .testTag("login_biometric_btn")
-        ) {
-            Icon(Icons.Default.Fingerprint, contentDescription = null, modifier = Modifier.size(22.dp))
-            Spacer(Modifier.width(8.dp))
-            Text("Biometric Unlock", fontWeight = FontWeight.Bold, fontSize = 14.sp)
-        }
+    Spacer(Modifier.height(12.dp))
+    Button(
+        onClick = onBiometricClick,
+        shape = RoundedCornerShape(16.dp),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = MaterialTheme.colorScheme.primaryContainer,
+            contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+        ),
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(50.dp)
+            .testTag("login_biometric_btn")
+    ) {
+        Icon(Icons.Default.Fingerprint, contentDescription = null, modifier = Modifier.size(22.dp))
+        Spacer(Modifier.width(8.dp))
+        Text("Biometric Security Scan", fontWeight = FontWeight.Bold, fontSize = 14.sp)
     }
 
     Spacer(Modifier.height(16.dp))

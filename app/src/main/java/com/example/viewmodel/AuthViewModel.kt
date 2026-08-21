@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.data.PortalRepository
 import com.example.model.ClientAccount
 import com.example.security.BiometricAuthManager
+import com.example.security.BiometricStatus
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -14,6 +15,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 sealed class AuthScreenState {
+    object LaunchChallenge : AuthScreenState()
     object Login : AuthScreenState()
     object ForgotPhone : AuthScreenState()
     data class ForgotOtp(val phone: String) : AuthScreenState()
@@ -21,7 +23,7 @@ sealed class AuthScreenState {
 }
 
 data class AuthUiState(
-    val screenState: AuthScreenState = AuthScreenState.Login,
+    val screenState: AuthScreenState = AuthScreenState.LaunchChallenge,
     val isAuthenticated: Boolean = false,
     val currentAccount: ClientAccount? = null,
     val emailInput: String = "01015523142az@gmail.com",
@@ -38,7 +40,9 @@ data class AuthUiState(
     val errorMessage: String? = null,
     val successMessage: String? = null,
     val isLoading: Boolean = false,
+    val biometricStatus: BiometricStatus = BiometricStatus.UNAVAILABLE,
     val isBiometricAvailable: Boolean = false,
+    val isBiometricAuthenticating: Boolean = false,
     val autoBiometricEnabled: Boolean = true
 )
 
@@ -61,8 +65,14 @@ class AuthViewModel(private val repository: PortalRepository) : ViewModel() {
     }
 
     fun checkBiometricAvailability(activity: FragmentActivity) {
-        val available = BiometricAuthManager.isBiometricAvailable(activity)
-        _uiState.update { it.copy(isBiometricAvailable = available) }
+        val status = BiometricAuthManager.getBiometricStatus(activity)
+        val available = status == BiometricStatus.AVAILABLE
+        _uiState.update {
+            it.copy(
+                biometricStatus = status,
+                isBiometricAvailable = available
+            )
+        }
     }
 
     fun onEmailChanged(email: String) = _uiState.update { it.copy(emailInput = email, errorMessage = null) }
@@ -110,25 +120,62 @@ class AuthViewModel(private val repository: PortalRepository) : ViewModel() {
     }
 
     fun triggerBiometricAuth(activity: FragmentActivity) {
-        if (!BiometricAuthManager.isBiometricAvailable(activity)) {
-            _uiState.update { it.copy(errorMessage = "Biometric unlock is not configured on this device.") }
+        val available = BiometricAuthManager.isBiometricAvailable(activity)
+        if (!available) {
+            _uiState.update {
+                it.copy(
+                    errorMessage = "Biometrics not configured on this device. You can sign in with your password.",
+                    isBiometricAuthenticating = false
+                )
+            }
             return
         }
 
+        _uiState.update { it.copy(isBiometricAuthenticating = true, errorMessage = null) }
+
         BiometricAuthManager.authenticate(
             activity = activity,
-            title = "Client Portal Quick Access",
-            subtitle = "Authenticate with your biometric credential",
+            title = "Client Portal Biometric Security",
+            subtitle = "Verify your fingerprint or face scan",
+            description = "Touch the fingerprint sensor or look at the camera to unlock",
             onSuccess = {
                 viewModelScope.launch {
                     repository.updateLastLogin()
-                    _uiState.update { it.copy(isAuthenticated = true, errorMessage = null) }
+                    _uiState.update {
+                        it.copy(
+                            isAuthenticated = true,
+                            isBiometricAuthenticating = false,
+                            errorMessage = null
+                        )
+                    }
                 }
             },
             onError = { err ->
-                _uiState.update { it.copy(errorMessage = err) }
+                _uiState.update {
+                    it.copy(
+                        isBiometricAuthenticating = false,
+                        errorMessage = err
+                    )
+                }
+            },
+            onFailed = {
+                _uiState.update {
+                    it.copy(
+                        isBiometricAuthenticating = false,
+                        errorMessage = "Fingerprint or face scan not recognized. Tap to retry."
+                    )
+                }
             }
         )
+    }
+
+    fun bypassBiometricForDemo() {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true, errorMessage = null) }
+            kotlinx.coroutines.delay(400)
+            repository.updateLastLogin()
+            _uiState.update { it.copy(isLoading = false, isAuthenticated = true) }
+        }
     }
 
     fun sendForgotPhoneOtp() {
@@ -236,7 +283,7 @@ class AuthViewModel(private val repository: PortalRepository) : ViewModel() {
                 passwordInput = "",
                 errorMessage = null,
                 successMessage = null,
-                screenState = AuthScreenState.Login
+                screenState = AuthScreenState.LaunchChallenge
             )
         }
     }
