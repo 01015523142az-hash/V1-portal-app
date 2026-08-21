@@ -60,11 +60,11 @@ fun MainAppScreen(
                 userName = account?.fullName ?: "",
                 unreadNotifications = unreadNotifications,
                 isDarkTheme = uiState.isDarkTheme,
-                onToggleTheme = portalViewModel::toggleTheme,
+                onToggleTheme = portalViewModel::toggleDarkTheme,
+                onOpenThemeCustomizer = portalViewModel::openThemeCustomizer,
                 onOpenNotifications = portalViewModel::toggleNotificationCenter,
                 onCreateCampaignClick = portalViewModel::openCreateCampaignModal,
                 onOpenProfile = portalViewModel::openProfileModal,
-                onToggleRemiClick = { portalViewModel.selectTab("remi") },
                 onSignOutClick = authViewModel::signOut
             )
         },
@@ -356,6 +356,20 @@ fun MainAppScreen(
             },
             onRequestPause = { portalViewModel.requestPause(uiState.manageSubscriptionId!!) },
             onRequestCancel = { portalViewModel.requestCancel(uiState.manageSubscriptionId!!) }
+        )
+    }
+
+    if (uiState.showThemeCustomizer) {
+        ThemeFontCustomizerSheet(
+            currentThemePreset = uiState.themePreset,
+            currentFontPreset = uiState.fontPreset,
+            isDarkTheme = uiState.isDarkTheme,
+            autoBiometricEnabled = uiState.autoBiometricLogin,
+            onSelectThemePreset = portalViewModel::selectThemePreset,
+            onSelectFontPreset = portalViewModel::selectFontPreset,
+            onToggleDarkTheme = portalViewModel::toggleDarkTheme,
+            onToggleAutoBiometric = portalViewModel::toggleAutoBiometric,
+            onDismiss = portalViewModel::closeThemeCustomizer
         )
     }
 

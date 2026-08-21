@@ -27,6 +27,8 @@ import androidx.compose.ui.window.Dialog
 import com.example.model.SupportTicketEntity
 import com.example.model.SupportTicketMessageEntity
 import com.example.model.TicketEntity
+import com.example.ui.components.SkeletonSupportTicketCard
+import com.example.ui.components.SkeletonTicketCard
 import com.example.ui.theme.*
 import java.text.SimpleDateFormat
 import java.util.Date

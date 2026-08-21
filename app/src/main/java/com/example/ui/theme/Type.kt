@@ -9,31 +9,41 @@ import androidx.compose.ui.unit.sp
 data class FontPresetConfig(
     val id: String,
     val name: String,
+    val subtitle: String = "",
     val description: String,
-    val fontFamily: FontFamily
+    val headingFamily: FontFamily = FontFamily.Default,
+    val bodyFamily: FontFamily = FontFamily.Default
 )
 
 object FontCatalog {
     val presets = listOf(
         FontPresetConfig(
             id = "modern_sans",
-            name = "Modern Sans (Inter / Clean)",
+            name = "Modern Sans",
+            subtitle = "Inter / Clean Tech",
             description = "Crisp, balanced typography built for modern PropTech interfaces.",
-            fontFamily = FontFamily.Default
+            headingFamily = FontFamily.Default,
+            bodyFamily = FontFamily.Default
         ),
         FontPresetConfig(
             id = "executive_serif",
-            name = "Executive Serif (Luxury)",
+            name = "Executive Serif",
+            subtitle = "Luxury Real Estate",
             description = "Refined editorial typography for luxury real estate and contracts.",
-            fontFamily = FontFamily.Serif
+            headingFamily = FontFamily.Serif,
+            bodyFamily = FontFamily.Default
         ),
         FontPresetConfig(
             id = "tech_mono",
-            name = "Tech Monospace (Analytics)",
+            name = "Tech Monospace",
+            subtitle = "Data & Analytics",
             description = "High-precision monospace accents for deal numbers and underwriting.",
-            fontFamily = FontFamily.Monospace
+            headingFamily = FontFamily.Monospace,
+            bodyFamily = FontFamily.Default
         )
     )
+
+    val ALL_FONT_PRESETS: List<FontPresetConfig> get() = presets
 }
 
 fun getTypographyForPreset(presetId: String): Typography {

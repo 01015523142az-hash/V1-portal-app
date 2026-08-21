@@ -1,6 +1,7 @@
 package com.example.ui.screens
 
 import androidx.compose.animation.*
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
@@ -20,6 +21,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -28,6 +30,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.fragment.app.FragmentActivity
+import com.example.R
 import com.example.ui.theme.*
 import com.example.viewmodel.AuthScreenState
 import com.example.viewmodel.AuthUiState
@@ -39,9 +42,18 @@ fun AuthScreen(
 ) {
     val state by authViewModel.uiState.collectAsState()
     val activity = LocalContext.current as? FragmentActivity
+    var hasAutoPromptedBiometric by remember { mutableStateOf(false) }
 
     LaunchedEffect(activity) {
         activity?.let { authViewModel.checkBiometricAvailability(it) }
+    }
+
+    // Auto-prompt Fingerprint / Face ID if enabled and available
+    LaunchedEffect(state.isBiometricAvailable, state.autoBiometricEnabled, activity) {
+        if (state.isBiometricAvailable && state.autoBiometricEnabled && !hasAutoPromptedBiometric && activity != null) {
+            hasAutoPromptedBiometric = true
+            authViewModel.triggerBiometricAuth(activity)
+        }
     }
 
     Box(
@@ -60,40 +72,61 @@ fun AuthScreen(
                 .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Header Logo & Badge
+            // PropTech AI Brand Logo Symbol
             Box(
                 modifier = Modifier
-                    .size(64.dp)
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.primaryContainer)
-                    .border(1.dp, MaterialTheme.colorScheme.outline, CircleShape),
+                    .size(68.dp)
+                    .clip(RoundedCornerShape(18.dp))
+                    .background(
+                        Brush.linearGradient(
+                            listOf(PropTechBlue, PropTechIndigo, PropTechCyan)
+                        )
+                    )
+                    .border(1.5.dp, PropTechCyan.copy(alpha = 0.7f), RoundedCornerShape(18.dp)),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(
-                    imageVector = Icons.Default.Apartment,
-                    contentDescription = "Proptech Client Portal",
-                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                    modifier = Modifier.size(32.dp)
+                Image(
+                    painter = painterResource(id = R.drawable.ic_proptech_ai_symbol),
+                    contentDescription = "PropTech AI Logo",
+                    modifier = Modifier.size(46.dp)
                 )
             }
 
             Spacer(Modifier.height(14.dp))
 
-            Text(
-                text = "Client Portal",
-                fontSize = 24.sp,
-                fontWeight = FontWeight.ExtraBold,
-                color = MaterialTheme.colorScheme.onBackground
-            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                Text(
+                    text = "Client Portal",
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+                Surface(
+                    shape = RoundedCornerShape(6.dp),
+                    color = PropTechCyan.copy(alpha = 0.15f),
+                    border = androidx.compose.foundation.BorderStroke(1.dp, PropTechCyan.copy(alpha = 0.4f))
+                ) {
+                    Text(
+                        text = "AI CORE",
+                        fontSize = 9.sp,
+                        fontWeight = FontWeight.ExtraBold,
+                        color = PropTechCyan,
+                        modifier = Modifier.padding(horizontal = 5.dp, vertical = 2.dp)
+                    )
+                }
+            }
 
             Text(
                 text = "Real People. AI Empowered.",
                 fontSize = 13.sp,
                 fontWeight = FontWeight.Medium,
-                color = SleekSecondary
+                color = MaterialTheme.colorScheme.primary
             )
 
-            Spacer(Modifier.height(24.dp))
+            Spacer(Modifier.height(22.dp))
 
             // Main Auth Card
             Card(

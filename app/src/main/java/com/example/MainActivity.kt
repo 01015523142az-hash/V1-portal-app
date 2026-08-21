@@ -36,7 +36,11 @@ class MainActivity : FragmentActivity() {
             val authState by authViewModel.uiState.collectAsState()
             val portalState by portalViewModel.uiState.collectAsState()
 
-            MyApplicationTheme(darkTheme = portalState.isDarkTheme) {
+            MyApplicationTheme(
+                darkTheme = portalState.isDarkTheme,
+                themePreset = portalState.themePreset,
+                fontPreset = portalState.fontPreset
+            ) {
                 if (authState.isAuthenticated) {
                     MainAppScreen(
                         portalViewModel = portalViewModel,

@@ -38,7 +38,8 @@ data class AuthUiState(
     val errorMessage: String? = null,
     val successMessage: String? = null,
     val isLoading: Boolean = false,
-    val isBiometricAvailable: Boolean = false
+    val isBiometricAvailable: Boolean = false,
+    val autoBiometricEnabled: Boolean = true
 )
 
 class AuthViewModel(private val repository: PortalRepository) : ViewModel() {
@@ -50,6 +51,11 @@ class AuthViewModel(private val repository: PortalRepository) : ViewModel() {
         viewModelScope.launch {
             repository.accountFlow.collect { account ->
                 _uiState.update { it.copy(currentAccount = account) }
+            }
+        }
+        viewModelScope.launch {
+            repository.autoBiometricLoginFlow.collect { autoBio ->
+                _uiState.update { it.copy(autoBiometricEnabled = autoBio) }
             }
         }
     }

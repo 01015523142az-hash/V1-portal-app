@@ -34,6 +34,7 @@ import androidx.compose.ui.unit.sp
 import com.example.model.*
 import com.example.ui.components.LeadAudioPlayerWidget
 import com.example.ui.components.LeadsMapView
+import com.example.ui.components.SkeletonLeadCard
 import com.example.ui.components.StatusPill
 import com.example.ui.theme.*
 import java.text.SimpleDateFormat
@@ -612,7 +613,11 @@ fun MyLeadsContent(
                 }
             }
 
-            if (filteredAndSortedLeads.isEmpty()) {
+            if (isRefreshing && filteredAndSortedLeads.isEmpty()) {
+                items(4) {
+                    SkeletonLeadCard()
+                }
+            } else if (filteredAndSortedLeads.isEmpty()) {
                 item {
                     Box(
                         modifier = Modifier
@@ -629,6 +634,11 @@ fun MyLeadsContent(
                     }
                 }
             } else {
+                if (isRefreshing) {
+                    item {
+                        SkeletonLeadCard()
+                    }
+                }
                 items(filteredAndSortedLeads, key = { it.id }) { lead ->
                     val isRecentlyPromoted = recentlyQualifiedLeadId == lead.id
                     LeadCard(

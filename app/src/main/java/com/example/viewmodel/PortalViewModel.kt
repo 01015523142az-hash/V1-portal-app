@@ -100,12 +100,18 @@ data class PortalUiState(
     val isPeerTyping: Boolean = false,
     val activeCallThreadStaff: String = "Sarah Mitchell",
     
-    // App Theme / Tweaks
+    // App Theme / Tweaks / Font Customizer
     val isDarkTheme: Boolean = true,
+    val themePreset: String = "proptech_sapphire",
+    val fontPreset: String = "modern_sans",
+    val isThemeFontCustomizerOpen: Boolean = false,
+    val autoBiometricLogin: Boolean = true,
     val isLeadsMapView: Boolean = false,
     val isRefreshingLeads: Boolean = false,
     val syncStatusMessage: String? = null
-)
+) {
+    val showThemeCustomizer: Boolean get() = isThemeFontCustomizerOpen
+}
 
 class PortalViewModel(private val repository: PortalRepository) : ViewModel() {
 
@@ -116,6 +122,21 @@ class PortalViewModel(private val repository: PortalRepository) : ViewModel() {
         viewModelScope.launch {
             repository.isDarkThemeFlow.collect { isDark ->
                 _uiState.update { it.copy(isDarkTheme = isDark) }
+            }
+        }
+        viewModelScope.launch {
+            repository.themePresetFlow.collect { preset ->
+                _uiState.update { it.copy(themePreset = preset) }
+            }
+        }
+        viewModelScope.launch {
+            repository.fontPresetFlow.collect { font ->
+                _uiState.update { it.copy(fontPreset = font) }
+            }
+        }
+        viewModelScope.launch {
+            repository.autoBiometricLoginFlow.collect { autoBio ->
+                _uiState.update { it.copy(autoBiometricLogin = autoBio) }
             }
         }
         viewModelScope.launch {
@@ -420,8 +441,6 @@ class PortalViewModel(private val repository: PortalRepository) : ViewModel() {
 
     fun toggleNotificationCenter() = _uiState.update { it.copy(isNotificationCenterOpen = !it.isNotificationCenterOpen) }
     fun toggleChatPanel() = _uiState.update { it.copy(isChatPanelOpen = !it.isChatPanelOpen) }
-
-    fun toggleTheme() = _uiState.update { it.copy(isDarkTheme = !it.isDarkTheme) }
 
     // --- Actions with Repository ---
     fun submitDispute(reason: String, explanation: String) {
@@ -761,6 +780,38 @@ class PortalViewModel(private val repository: PortalRepository) : ViewModel() {
     fun toggleDarkTheme() {
         val next = !_uiState.value.isDarkTheme
         setDarkTheme(next)
+    }
+
+    fun toggleTheme() = toggleDarkTheme()
+
+    fun openThemeFontCustomizer() {
+        _uiState.update { it.copy(isThemeFontCustomizerOpen = true) }
+    }
+
+    fun closeThemeFontCustomizer() {
+        _uiState.update { it.copy(isThemeFontCustomizerOpen = false) }
+    }
+
+    fun openThemeCustomizer() = openThemeFontCustomizer()
+    fun closeThemeCustomizer() = closeThemeFontCustomizer()
+
+    fun selectThemePreset(presetId: String) {
+        viewModelScope.launch {
+            repository.setThemePreset(presetId)
+        }
+    }
+
+    fun selectFontPreset(fontId: String) {
+        viewModelScope.launch {
+            repository.setFontPreset(fontId)
+        }
+    }
+
+    fun toggleAutoBiometric(enabled: Boolean) {
+        viewModelScope.launch {
+            repository.setAutoBiometricLogin(enabled)
+            repository.updateBiometric(enabled)
+        }
     }
 
     fun setLeadsMapView(isMap: Boolean) {

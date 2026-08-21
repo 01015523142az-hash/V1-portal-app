@@ -18,13 +18,17 @@ import androidx.core.view.WindowCompat
 data class ThemePresetConfig(
     val id: String,
     val name: String,
+    val subtitle: String = "",
     val description: String,
     val primaryColor: Color,
     val secondaryColor: Color,
     val tertiaryColor: Color,
     val darkColorScheme: ColorScheme,
     val lightColorScheme: ColorScheme
-)
+) {
+    val darkScheme: ColorScheme get() = darkColorScheme
+    val lightScheme: ColorScheme get() = lightColorScheme
+}
 
 val SapphireDarkScheme = darkColorScheme(
     primary = SapphirePrimary,
@@ -280,8 +284,9 @@ object ThemeCatalog {
     val presets = listOf(
         ThemePresetConfig(
             id = "proptech_sapphire",
-            name = "PropTech Sapphire",
-            description = "Portal Default · Electric Sapphire & Neon Cyan",
+            name = "PropTech AI Tri-Color Accent (Default)",
+            subtitle = "Signature Portal · Sapphire Blue · Neon Cyan · Neural Indigo",
+            description = "Official client portal tri-color signature template with electric sapphire, cyber cyan, and neural indigo multi-accent glow.",
             primaryColor = SapphirePrimary,
             secondaryColor = SapphireSecondary,
             tertiaryColor = SapphireTertiary,
@@ -291,7 +296,8 @@ object ThemeCatalog {
         ThemePresetConfig(
             id = "emerald_dealmaker",
             name = "Emerald Dealmaker",
-            description = "High-Growth Real Estate & Mint Highlights",
+            subtitle = "Growth Pipeline · Forest & Mint",
+            description = "High-velocity deals, positive ROI green, and crisp mint highlights.",
             primaryColor = EmeraldPrimary,
             secondaryColor = EmeraldSecondary,
             tertiaryColor = EmeraldTertiary,
@@ -301,7 +307,8 @@ object ThemeCatalog {
         ThemePresetConfig(
             id = "executive_gold",
             name = "Executive Gold",
-            description = "Luxury Brokerage & Warm Amber Accents",
+            subtitle = "Luxury Brokerage · Amber & Champagne",
+            description = "Warm amber accents designed for premium commercial real estate.",
             primaryColor = GoldPrimary,
             secondaryColor = GoldSecondary,
             tertiaryColor = GoldTertiary,
@@ -311,7 +318,8 @@ object ThemeCatalog {
         ThemePresetConfig(
             id = "cyber_purple",
             name = "Cyberpunk Midnight",
-            description = "Deep Cyber Night & Vivid Purple Glow",
+            subtitle = "AI Deep Intelligence · Neon Purple",
+            description = "Deep cyber night canvas with vivid neural purple glow.",
             primaryColor = PurplePrimary,
             secondaryColor = PurpleSecondary,
             tertiaryColor = PurpleTertiary,
@@ -321,7 +329,8 @@ object ThemeCatalog {
         ThemePresetConfig(
             id = "slate_corporate",
             name = "Corporate Titanium",
-            description = "Clean Slate Enterprise & Sky Blue",
+            subtitle = "Clean Enterprise · Sky & Slate",
+            description = "Clean slate enterprise neutral with sky blue accents.",
             primaryColor = SlatePrimary,
             secondaryColor = SlateSecondary,
             tertiaryColor = SlateTertiary,
@@ -329,6 +338,8 @@ object ThemeCatalog {
             lightColorScheme = SlateLightScheme
         )
     )
+
+    val ALL_THEME_PRESETS: List<ThemePresetConfig> get() = presets
 
     fun getPreset(id: String): ThemePresetConfig {
         return presets.find { it.id == id } ?: presets.first()

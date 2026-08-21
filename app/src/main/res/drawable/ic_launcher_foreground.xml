@@ -1,53 +1,54 @@
 <?xml version="1.0" encoding="utf-8"?>
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:aapt="http://schemas.android.com/aapt"
     android:width="108dp"
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
     
-    <!-- Outer shield / polygon container -->
+    <!-- Outer Shield / Hexagonal AI Base -->
     <path
-        android:pathData="M54,22 L82,36 L82,68 L54,86 L26,68 L26,36 Z"
+        android:pathData="M54,20 L84,36 L84,72 L54,88 L24,72 L24,36 Z"
         android:strokeWidth="2.5"
-        android:strokeColor="#C9A66B"
-        android:fillColor="#25FD6262" />
+        android:strokeColor="#00E5FF"
+        android:fillColor="#1A0066FF" />
 
-    <!-- Modern Property & Analytics Node Icon -->
-    <!-- House roofline -->
+    <!-- Left Building Wing -->
     <path
-        android:pathData="M36,54 L54,38 L72,54"
-        android:strokeWidth="3.5"
-        android:strokeColor="#FD6262"
+        android:pathData="M34,48 L46,48 L46,74 L34,74 Z"
+        android:fillColor="#00E5FF" />
+
+    <!-- Center High-Rise Tower -->
+    <path
+        android:pathData="M48,34 L60,34 L60,74 L48,74 Z"
+        android:fillColor="#0066FF" />
+
+    <!-- Right Property Tower -->
+    <path
+        android:pathData="M62,42 L74,42 L74,74 L62,74 Z"
+        android:fillColor="#00E676" />
+
+    <!-- Neural Network Link Line -->
+    <path
+        android:pathData="M38,40 L54,28 L70,36"
+        android:strokeWidth="2.5"
+        android:strokeColor="#FFFFFF"
         android:strokeLineCap="round"
         android:strokeLineJoin="round"
         android:fillColor="#00000000" />
 
-    <!-- Building base -->
+    <!-- AI Node Pulses -->
     <path
-        android:pathData="M42,52 L42,72 L66,72 L66,52"
-        android:strokeWidth="3"
-        android:strokeColor="#F2EDE6"
-        android:strokeLineCap="round"
-        android:strokeLineJoin="round"
-        android:fillColor="#00000000" />
+        android:pathData="M54,28 A3,3 0 1,1 54,27.9 Z"
+        android:fillColor="#FFFFFF" />
+    <path
+        android:pathData="M38,40 A2.5,2.5 0 1,1 38,39.9 Z"
+        android:fillColor="#00E5FF" />
+    <path
+        android:pathData="M70,36 A2.5,2.5 0 1,1 70,35.9 Z"
+        android:fillColor="#00E676" />
 
-    <!-- AI data pulse / spark in center -->
+    <!-- Center AI Gold Spark -->
     <path
-        android:pathData="M54,49 L56.5,56 L63,58.5 L56.5,61 L54,68 L51.5,61 L45,58.5 L51.5,56 Z"
-        android:fillColor="#C9A66B" />
-
-    <!-- Connected nodes for leads & skiptracing -->
-    <path
-        android:pathData="M32,40 A3,3 0 1,1 32,39.9 Z"
-        android:fillColor="#FD6262" />
-    <path
-        android:pathData="M76,40 A3,3 0 1,1 76,39.9 Z"
-        android:fillColor="#FD6262" />
-    <path
-        android:pathData="M54,22 A3.5,3.5 0 1,1 54,21.9 Z"
-        android:fillColor="#C9A66B" />
-    <path
-        android:pathData="M54,86 A3.5,3.5 0 1,1 54,85.9 Z"
-        android:fillColor="#C9A66B" />
+        android:pathData="M54,48 L56.5,54 L62,56.5 L56.5,59 L54,65 L51.5,59 L46,56.5 L51.5,54 Z"
+        android:fillColor="#FFD700" />
 </vector>

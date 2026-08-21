@@ -44,6 +44,9 @@ class PortalRepository(
 
     // --- Flows ---
     val isDarkThemeFlow: Flow<Boolean> = userPreferencesRepository.isDarkThemeFlow
+    val themePresetFlow: Flow<String> = userPreferencesRepository.themePresetFlow
+    val fontPresetFlow: Flow<String> = userPreferencesRepository.fontPresetFlow
+    val autoBiometricLoginFlow: Flow<Boolean> = userPreferencesRepository.autoBiometricLoginFlow
     val isLeadsMapViewFlow: Flow<Boolean> = userPreferencesRepository.isLeadsMapViewFlow
     val quietHoursSettingsFlow: Flow<QuietHoursSettings> = userPreferencesRepository.quietHoursSettingsFlow
     val accountFlow: Flow<ClientAccount?> = accountDao.getAccountFlow()
@@ -93,11 +96,17 @@ class PortalRepository(
     fun getSupportTicketMessagesFlow(ticketId: String): Flow<List<SupportTicketMessageEntity>> = supportTicketDao.getMessagesFlow(ticketId)
     fun getDisputeMessagesFlow(disputeId: String): Flow<List<DisputeMessageEntity>> = disputeDao.getMessagesFlow(disputeId)
 
-    // --- Account / Auth ---
+    // --- Account / Auth / Preferences ---
     suspend fun getAccount(): ClientAccount? = accountDao.getAccount()
     suspend fun saveAccount(account: ClientAccount) = accountDao.insertOrUpdate(account)
     suspend fun updateBiometric(enabled: Boolean) = accountDao.updateBiometric(enabled)
     suspend fun updateLastLogin() = accountDao.updateLastLogin(System.currentTimeMillis())
+    suspend fun setDarkTheme(isDark: Boolean) = userPreferencesRepository.setDarkTheme(isDark)
+    suspend fun setThemePreset(presetId: String) = userPreferencesRepository.setThemePreset(presetId)
+    suspend fun setFontPreset(fontId: String) = userPreferencesRepository.setFontPreset(fontId)
+    suspend fun setAutoBiometricLogin(enabled: Boolean) = userPreferencesRepository.setAutoBiometricLogin(enabled)
+    suspend fun setLeadsMapView(isMap: Boolean) = userPreferencesRepository.setLeadsMapView(isMap)
+    suspend fun setQuietHoursSettings(settings: QuietHoursSettings) = userPreferencesRepository.setQuietHoursSettings(settings)
 
     // --- Notification Channels ---
     private fun createNotificationChannels() {
@@ -806,14 +815,6 @@ class PortalRepository(
     }
 
     // --- Account & Profile Management ---
-    suspend fun setDarkTheme(isDark: Boolean) {
-        userPreferencesRepository.setDarkTheme(isDark)
-    }
-
-    suspend fun setLeadsMapView(isMap: Boolean) {
-        userPreferencesRepository.setLeadsMapView(isMap)
-    }
-
     suspend fun updateAccountProfile(name: String, company: String, phone: String) {
         accountDao.updateAccountProfile(name, company, phone)
         triggerClientPushNotification(

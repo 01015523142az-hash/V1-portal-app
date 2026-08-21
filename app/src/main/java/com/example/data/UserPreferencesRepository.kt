@@ -8,6 +8,7 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
+import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
@@ -64,6 +65,10 @@ class UserPreferencesRepository(private val context: Context) {
 
     companion object {
         val KEY_DARK_THEME = booleanPreferencesKey("dark_theme_enabled")
+        val KEY_THEME_PRESET = stringPreferencesKey("theme_preset_id")
+        val KEY_FONT_PRESET = stringPreferencesKey("font_preset_id")
+        val KEY_AUTO_BIOMETRIC = booleanPreferencesKey("auto_biometric_login")
+        val KEY_SAVED_USER_EMAIL = stringPreferencesKey("saved_user_email")
         val KEY_LEADS_MAP_VIEW = booleanPreferencesKey("leads_map_view_enabled")
         val KEY_QUIET_HOURS_ENABLED = booleanPreferencesKey("quiet_hours_enabled")
         val KEY_QUIET_HOURS_START_HOUR = intPreferencesKey("quiet_hours_start_hour")
@@ -89,6 +94,60 @@ class UserPreferencesRepository(private val context: Context) {
     suspend fun setDarkTheme(isDark: Boolean) {
         context.userPreferencesDataStore.edit { preferences ->
             preferences[KEY_DARK_THEME] = isDark
+        }
+    }
+
+    val themePresetFlow: Flow<String> = context.userPreferencesDataStore.data
+        .catch { exception ->
+            if (exception is IOException) {
+                emit(emptyPreferences())
+            } else {
+                throw exception
+            }
+        }
+        .map { preferences ->
+            preferences[KEY_THEME_PRESET] ?: "proptech_sapphire"
+        }
+
+    suspend fun setThemePreset(presetId: String) {
+        context.userPreferencesDataStore.edit { preferences ->
+            preferences[KEY_THEME_PRESET] = presetId
+        }
+    }
+
+    val fontPresetFlow: Flow<String> = context.userPreferencesDataStore.data
+        .catch { exception ->
+            if (exception is IOException) {
+                emit(emptyPreferences())
+            } else {
+                throw exception
+            }
+        }
+        .map { preferences ->
+            preferences[KEY_FONT_PRESET] ?: "modern_sans"
+        }
+
+    suspend fun setFontPreset(fontId: String) {
+        context.userPreferencesDataStore.edit { preferences ->
+            preferences[KEY_FONT_PRESET] = fontId
+        }
+    }
+
+    val autoBiometricLoginFlow: Flow<Boolean> = context.userPreferencesDataStore.data
+        .catch { exception ->
+            if (exception is IOException) {
+                emit(emptyPreferences())
+            } else {
+                throw exception
+            }
+        }
+        .map { preferences ->
+            preferences[KEY_AUTO_BIOMETRIC] ?: true
+        }
+
+    suspend fun setAutoBiometricLogin(enabled: Boolean) {
+        context.userPreferencesDataStore.edit { preferences ->
+            preferences[KEY_AUTO_BIOMETRIC] = enabled
         }
     }
 
@@ -155,7 +214,7 @@ class UserPreferencesRepository(private val context: Context) {
             }
         }
         .map { preferences ->
-            preferences[KEY_LAST_SYNC_TIMESTAMP] ?: (System.currentTimeMillis() - 4 * 60 * 1000) // Default to 4 mins ago
+            preferences[KEY_LAST_SYNC_TIMESTAMP] ?: (System.currentTimeMillis() - 4 * 60 * 1000)
         }
 
     suspend fun setLastSyncTimestamp(timestamp: Long) {
