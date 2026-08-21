@@ -311,8 +311,45 @@ fun DashboardScreen(
         item {
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
+                // Remi AI & Templates Quick Tile
+                Card(
+                    shape = RoundedCornerShape(20.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                    border = androidx.compose.foundation.BorderStroke(1.dp, Brush.horizontalGradient(listOf(PropTechCyan.copy(alpha = 0.5f), SleekPrimary.copy(alpha = 0.5f)))),
+                    modifier = Modifier
+                        .weight(1f)
+                        .clickable { onNavigateTab("remi") }
+                        .testTag("quick_tile_remi_ai")
+                ) {
+                    Column(modifier = Modifier.padding(12.dp)) {
+                        Box(
+                            modifier = Modifier
+                                .size(34.dp)
+                                .clip(CircleShape)
+                                .background(PropTechCyan.copy(alpha = 0.15f)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(Icons.Default.AutoAwesome, contentDescription = null, tint = PropTechCyan, modifier = Modifier.size(17.dp))
+                        }
+                        Spacer(Modifier.height(8.dp))
+                        Text(
+                            text = "Remi AI & Templates",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 12.sp,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        Text(
+                            text = "Underwriting, Scripts, MAO",
+                            fontSize = 10.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(top = 2.dp),
+                            maxLines = 1
+                        )
+                    }
+                }
+
                 // Order Niche Lists Quick Tile
                 Card(
                     shape = RoundedCornerShape(20.dp),
@@ -322,28 +359,29 @@ fun DashboardScreen(
                         .weight(1f)
                         .clickable { onNavigateTab("buylist") }
                 ) {
-                    Column(modifier = Modifier.padding(14.dp)) {
+                    Column(modifier = Modifier.padding(12.dp)) {
                         Box(
                             modifier = Modifier
-                                .size(36.dp)
+                                .size(34.dp)
                                 .clip(CircleShape)
                                 .background(MaterialTheme.colorScheme.primaryContainer),
                             contentAlignment = Alignment.Center
                         ) {
-                            Icon(Icons.Default.FormatListNumbered, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(18.dp))
+                            Icon(Icons.Default.FormatListNumbered, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(17.dp))
                         }
-                        Spacer(Modifier.height(10.dp))
+                        Spacer(Modifier.height(8.dp))
                         Text(
                             text = "Order Niche Lists",
                             fontWeight = FontWeight.Bold,
-                            fontSize = 13.sp,
+                            fontSize = 12.sp,
                             color = MaterialTheme.colorScheme.onSurface
                         )
                         Text(
-                            text = "Absentee & Pre-foreclosure",
-                            fontSize = 11.sp,
+                            text = "Absentee & Foreclosures",
+                            fontSize = 10.sp,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(top = 2.dp)
+                            modifier = Modifier.padding(top = 2.dp),
+                            maxLines = 1
                         )
                     }
                 }
@@ -357,28 +395,29 @@ fun DashboardScreen(
                         .weight(1f)
                         .clickable { onNavigateTab("skiptrace") }
                 ) {
-                    Column(modifier = Modifier.padding(14.dp)) {
+                    Column(modifier = Modifier.padding(12.dp)) {
                         Box(
                             modifier = Modifier
-                                .size(36.dp)
+                                .size(34.dp)
                                 .clip(CircleShape)
                                 .background(SleekSecondary.copy(alpha = 0.15f)),
                             contentAlignment = Alignment.Center
                         ) {
-                            Icon(Icons.Default.Search, contentDescription = null, tint = SleekSecondary, modifier = Modifier.size(18.dp))
+                            Icon(Icons.Default.Search, contentDescription = null, tint = SleekSecondary, modifier = Modifier.size(17.dp))
                         }
-                        Spacer(Modifier.height(10.dp))
+                        Spacer(Modifier.height(8.dp))
                         Text(
                             text = "Batch Skip Trace",
                             fontWeight = FontWeight.Bold,
-                            fontSize = 13.sp,
+                            fontSize = 12.sp,
                             color = MaterialTheme.colorScheme.onSurface
                         )
                         Text(
-                            text = "Phones, Emails, Relatives",
-                            fontSize = 11.sp,
+                            text = "Phones, Emails & DNC",
+                            fontSize = 10.sp,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(top = 2.dp)
+                            modifier = Modifier.padding(top = 2.dp),
+                            maxLines = 1
                         )
                     }
                 }

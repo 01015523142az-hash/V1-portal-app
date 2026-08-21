@@ -1,6 +1,6 @@
 {
-  "name": "Client Portal",
-  "description": "Client Portal mobile app for managing real estate leads, tickets, skip tracing, niche list orders, billing and push notifications with biometric security.",
+  "name": "PropTech AI",
+  "description": "PropTech AI Client Portal for real estate wholesale leads, deal underwriting, Remi AI assistant, skip tracing, and deal review queues.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

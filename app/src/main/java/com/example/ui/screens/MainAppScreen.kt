@@ -53,25 +53,10 @@ fun MainAppScreen(
     val isOnline by portalViewModel.isOnline.collectAsState()
     val lastSyncTimestamp by portalViewModel.lastSyncTimestamp.collectAsState()
 
-    // If chat panel is full screen open
-    if (uiState.isChatPanelOpen) {
-        ChatAssistantView(
-            messages = chatMessages,
-            inputText = uiState.chatInputText,
-            onInputChanged = portalViewModel::onChatInputChanged,
-            onSendMessage = portalViewModel::sendChatMessage,
-            onSendVoiceMessage = portalViewModel::sendVoiceMessage,
-            isPeerTyping = uiState.isPeerTyping,
-            onStartVoiceCall = portalViewModel::startVoiceCall,
-            onClose = portalViewModel::toggleChatPanel
-        )
-        return
-    }
-
     Scaffold(
         topBar = {
             PortalTopAppBar(
-                companyName = account?.companyName ?: "Proptech Portal",
+                companyName = account?.companyName ?: "PropTech AI Portal",
                 userName = account?.fullName ?: "",
                 unreadNotifications = unreadNotifications,
                 isDarkTheme = uiState.isDarkTheme,
@@ -79,6 +64,7 @@ fun MainAppScreen(
                 onOpenNotifications = portalViewModel::toggleNotificationCenter,
                 onCreateCampaignClick = portalViewModel::openCreateCampaignModal,
                 onOpenProfile = portalViewModel::openProfileModal,
+                onToggleRemiClick = { portalViewModel.selectTab("remi") },
                 onSignOutClick = authViewModel::signOut
             )
         },
@@ -87,12 +73,6 @@ fun MainAppScreen(
                 selectedTab = uiState.selectedTab,
                 ticketBadgeCount = tickets.size,
                 onTabSelected = portalViewModel::selectTab
-            )
-        },
-        floatingActionButton = {
-            // Floating Remi AI assistant mascot FAB
-            RemiFloatingMascot(
-                onClick = portalViewModel::toggleChatPanel
             )
         },
         containerColor = MaterialTheme.colorScheme.background
@@ -174,6 +154,19 @@ fun MainAppScreen(
                             isRefreshing = uiState.isRefreshingLeads,
                             onRefresh = portalViewModel::refreshLeads,
                             syncStatusMessage = uiState.syncStatusMessage
+                        )
+                    }
+
+                    "remi" -> {
+                        ChatAssistantView(
+                            messages = chatMessages,
+                            inputText = uiState.chatInputText,
+                            onInputChanged = portalViewModel::onChatInputChanged,
+                            onSendMessage = portalViewModel::sendChatMessage,
+                            onSendVoiceMessage = portalViewModel::sendVoiceMessage,
+                            isPeerTyping = uiState.isPeerTyping,
+                            onStartVoiceCall = portalViewModel::startVoiceCall,
+                            onClose = null
                         )
                     }
 

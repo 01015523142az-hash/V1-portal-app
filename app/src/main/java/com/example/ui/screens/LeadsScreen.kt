@@ -20,6 +20,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -79,7 +80,12 @@ fun LeadsScreen(
     onSendDisputeReply: (String, String) -> Unit,
     isMapView: Boolean = false,
     onToggleMapView: (Boolean) -> Unit = {},
-    onLogCallMade: (String) -> Unit = {}
+    onLogCallMade: (String) -> Unit = {},
+    isOnline: Boolean = true,
+    lastSyncTimestamp: Long = System.currentTimeMillis(),
+    isRefreshing: Boolean = false,
+    onRefresh: () -> Unit = {},
+    syncStatusMessage: String? = null
 ) {
     if (selectedLeadDetailId != null) {
         val detailLead = leads.find { it.id == selectedLeadDetailId }
@@ -180,7 +186,12 @@ fun LeadsScreen(
                     onOpenFeedback = onOpenFeedback,
                     isMapView = isMapView,
                     onToggleMapView = onToggleMapView,
-                    onLogCallMade = onLogCallMade
+                    onLogCallMade = onLogCallMade,
+                    isOnline = isOnline,
+                    lastSyncTimestamp = lastSyncTimestamp,
+                    isRefreshing = isRefreshing,
+                    onRefresh = onRefresh,
+                    syncStatusMessage = syncStatusMessage
                 )
             }
             "lead_analytics" -> {
@@ -230,7 +241,12 @@ fun MyLeadsContent(
     onOpenFeedback: (String) -> Unit,
     isMapView: Boolean = false,
     onToggleMapView: (Boolean) -> Unit = {},
-    onLogCallMade: (String) -> Unit = {}
+    onLogCallMade: (String) -> Unit = {},
+    isOnline: Boolean = true,
+    lastSyncTimestamp: Long = System.currentTimeMillis(),
+    isRefreshing: Boolean = false,
+    onRefresh: () -> Unit = {},
+    syncStatusMessage: String? = null
 ) {
     var isSortMenuOpen by remember { mutableStateOf(false) }
 
@@ -340,8 +356,69 @@ fun MyLeadsContent(
                 LeadsViewModeToggleRow(
                     isMapView = isMapView,
                     onToggleMapView = onToggleMapView,
-                    totalCount = leads.size
+                    totalCount = leads.size,
+                    isOnline = isOnline,
+                    lastSyncTimestamp = lastSyncTimestamp,
+                    isRefreshing = isRefreshing,
+                    onRefresh = onRefresh
                 )
+            }
+
+            // Offline Mode Notice Banner
+            if (!isOnline) {
+                item {
+                    Surface(
+                        shape = RoundedCornerShape(12.dp),
+                        color = CoralPrimary.copy(alpha = 0.12f),
+                        border = androidx.compose.foundation.BorderStroke(1.dp, CoralPrimary.copy(alpha = 0.5f)),
+                        modifier = Modifier.fillMaxWidth().testTag("leads_offline_banner")
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            Icon(Icons.Default.CloudOff, contentDescription = null, tint = CoralPrimary, modifier = Modifier.size(20.dp))
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = "Offline Mode (Local Cache Active)",
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = CoralPrimary
+                                )
+                                Text(
+                                    text = "Last synced ${formatRelativeSyncTime(lastSyncTimestamp)}. Leads, calls, and voice notes will sync automatically once reconnected.",
+                                    fontSize = 11.sp,
+                                    lineHeight = 15.sp,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+                    }
+                }
+            } else if (syncStatusMessage != null) {
+                item {
+                    Surface(
+                        shape = RoundedCornerShape(12.dp),
+                        color = MaterialTheme.colorScheme.surfaceVariant,
+                        border = CardDefaults.outlinedCardBorder(),
+                        modifier = Modifier.fillMaxWidth().testTag("leads_sync_message_banner")
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Icon(Icons.Default.Sync, contentDescription = null, tint = CoralPrimary, modifier = Modifier.size(16.dp))
+                            Text(
+                                text = syncStatusMessage,
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                        }
+                    }
+                }
             }
 
             // Status Update Celebration Toast Banner
@@ -1652,8 +1729,23 @@ fun LeadsViewModeToggleRow(
     isMapView: Boolean,
     onToggleMapView: (Boolean) -> Unit,
     totalCount: Int,
+    isOnline: Boolean = true,
+    lastSyncTimestamp: Long = System.currentTimeMillis(),
+    isRefreshing: Boolean = false,
+    onRefresh: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
+    val infiniteTransition = rememberInfiniteTransition(label = "sync_spin")
+    val spinAngle by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 360f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(1000, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "spin_angle"
+    )
+
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -1680,74 +1772,124 @@ fun LeadsViewModeToggleRow(
             )
         }
 
-        // Segmented List vs Map Mode Toggle
-        Surface(
-            shape = RoundedCornerShape(20.dp),
-            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f),
-            border = CardDefaults.outlinedCardBorder(),
-            modifier = Modifier.testTag("leads_view_mode_toggle")
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp)
         ) {
-            Row(
-                modifier = Modifier.padding(3.dp),
-                horizontalArrangement = Arrangement.spacedBy(2.dp)
+            // Sync & Refresh Button
+            Surface(
+                shape = RoundedCornerShape(16.dp),
+                color = if (isRefreshing) CoralPrimary.copy(alpha = 0.15f) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f),
+                border = CardDefaults.outlinedCardBorder(),
+                modifier = Modifier
+                    .clip(RoundedCornerShape(16.dp))
+                    .clickable(enabled = !isRefreshing) { onRefresh() }
+                    .testTag("leads_sync_refresh_btn")
             ) {
-                Surface(
-                    shape = RoundedCornerShape(16.dp),
-                    color = if (!isMapView) CoralPrimary else Color.Transparent,
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(16.dp))
-                        .clickable { onToggleMapView(false) }
-                        .testTag("leads_list_view_btn")
+                Row(
+                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
-                    Row(
-                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(4.dp)
-                    ) {
-                        Icon(
-                            Icons.Default.ViewList,
-                            contentDescription = "List View",
-                            tint = if (!isMapView) Color.White else MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.size(13.dp)
-                        )
-                        Text(
-                            text = "List",
-                            fontSize = 11.sp,
-                            fontWeight = if (!isMapView) FontWeight.Bold else FontWeight.Medium,
-                            color = if (!isMapView) Color.White else MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
+                    Icon(
+                        Icons.Default.Sync,
+                        contentDescription = "Sync Leads",
+                        tint = if (isRefreshing) CoralPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier
+                            .size(13.dp)
+                            .then(if (isRefreshing) Modifier.rotate(spinAngle) else Modifier)
+                    )
+                    Text(
+                        text = if (isRefreshing) "Syncing..." else if (!isOnline) "Offline" else "Sync",
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = if (isRefreshing) CoralPrimary else if (!isOnline) CoralPrimary else MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
+            }
 
-                Surface(
-                    shape = RoundedCornerShape(16.dp),
-                    color = if (isMapView) CoralPrimary else Color.Transparent,
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(16.dp))
-                        .clickable { onToggleMapView(true) }
-                        .testTag("leads_map_view_btn")
+            // Segmented List vs Map Mode Toggle
+            Surface(
+                shape = RoundedCornerShape(20.dp),
+                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f),
+                border = CardDefaults.outlinedCardBorder(),
+                modifier = Modifier.testTag("leads_view_mode_toggle")
+            ) {
+                Row(
+                    modifier = Modifier.padding(3.dp),
+                    horizontalArrangement = Arrangement.spacedBy(2.dp)
                 ) {
-                    Row(
-                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    Surface(
+                        shape = RoundedCornerShape(16.dp),
+                        color = if (!isMapView) CoralPrimary else Color.Transparent,
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(16.dp))
+                            .clickable { onToggleMapView(false) }
+                            .testTag("leads_list_view_btn")
                     ) {
-                        Icon(
-                            Icons.Default.Map,
-                            contentDescription = "Map View",
-                            tint = if (isMapView) Color.White else MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.size(13.dp)
-                        )
-                        Text(
-                            text = "Map",
-                            fontSize = 11.sp,
-                            fontWeight = if (isMapView) FontWeight.Bold else FontWeight.Medium,
-                            color = if (isMapView) Color.White else MaterialTheme.colorScheme.onSurfaceVariant
-                        )
+                        Row(
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(3.dp)
+                        ) {
+                            Icon(
+                                Icons.Default.ViewList,
+                                contentDescription = "List View",
+                                tint = if (!isMapView) Color.White else MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.size(12.dp)
+                            )
+                            Text(
+                                text = "List",
+                                fontSize = 10.sp,
+                                fontWeight = if (!isMapView) FontWeight.Bold else FontWeight.Medium,
+                                color = if (!isMapView) Color.White else MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+
+                    Surface(
+                        shape = RoundedCornerShape(16.dp),
+                        color = if (isMapView) CoralPrimary else Color.Transparent,
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(16.dp))
+                            .clickable { onToggleMapView(true) }
+                            .testTag("leads_map_view_btn")
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(3.dp)
+                        ) {
+                            Icon(
+                                Icons.Default.Map,
+                                contentDescription = "Map View",
+                                tint = if (isMapView) Color.White else MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.size(12.dp)
+                            )
+                            Text(
+                                text = "Map",
+                                fontSize = 10.sp,
+                                fontWeight = if (isMapView) FontWeight.Bold else FontWeight.Medium,
+                                color = if (isMapView) Color.White else MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
                     }
                 }
             }
         }
+    }
+}
+
+fun formatRelativeSyncTime(timestamp: Long): String {
+    val diff = System.currentTimeMillis() - timestamp
+    val seconds = diff / 1000
+    val minutes = seconds / 60
+    val hours = minutes / 60
+    return when {
+        diff < 60_000 -> "just now"
+        minutes < 60 -> "${minutes}m ago"
+        hours < 24 -> "${hours}h ago"
+        else -> SimpleDateFormat("MMM d, h:mm a", Locale.getDefault()).format(Date(timestamp))
     }
 }
 

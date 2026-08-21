@@ -904,6 +904,53 @@ class PortalRepository(
     private fun generateRemiResponse(userText: String): String {
         val lower = userText.lowercase()
         return when {
+            lower.contains("underwriting") || lower.contains("arv") || lower.contains("mao") || lower.contains("calculate") || lower.contains("deal") ->
+                "📊 **PropTech AI Deal Underwriting Analysis**\n\n" +
+                "• **Estimated ARV:** $330,000\n" +
+                "• **Estimated Rehab:** $35,000 (Roof, Kitchen, LVP)\n" +
+                "• **Wholesale Assignment Fee:** $15,000\n" +
+                "• **Calculated MAO (70% Rule):** **$181,000**\n" +
+                "• **Seller Asking:** $210,000 (Spread: -$29,000)\n\n" +
+                "💡 **Recommendation:** Counter at **$185,000 cash with 10-day close** and inspection contingency. Projected end-buyer ROI is 16.8% with $48,000 net profit margin."
+
+            lower.contains("cold call") || lower.contains("script") || lower.contains("pitch") || lower.contains("hook") ->
+                "📞 **High-Converting Cold Call Script (Distressed / Absentee Owner)**\n\n" +
+                "**Opening Hook:**\n\"Hi [Seller Name], my name is Alex with Apex Partners. I was looking at properties in [City/Neighborhood] and noticed your house on [Address]. I wanted to see if you'd consider a fair all-cash offer if the price and timeline made sense for you?\"\n\n" +
+                "**If they ask 'What's your offer?':**\n\"We buy completely as-is and cover 100% of closing costs with zero agent commissions. Based on recent neighborhood sales, we typically range between $[Low] and $[High] depending on current condition. If we could close within 14 days, what number would you need to walk away with at closing?\"\n\n" +
+                "**Next Step:** Lock in a 10-minute walkthrough inspection."
+
+            lower.contains("wholesale") || lower.contains("contract") || lower.contains("clause") || lower.contains("assignment") ->
+                "📝 **Standard Wholesale Assignment & Contingency Clauses**\n\n" +
+                "1. **Assignment Clause:**\n\"Buyer has the unqualified right to assign this Contract and all rights hereunder to any third-party individual or entity without requiring Seller's prior consent, provided that Assignee assumes all Buyer obligations.\"\n\n" +
+                "2. **Due Diligence Contingency:**\n\"Buyer's obligation is contingent upon a satisfactory 14-day property inspection and title verification. In the event of disapproval, Buyer may cancel with 100% return of Earnest Money ($1,000.00).\"\n\n" +
+                "3. **Closing Terms:** As-is condition, Seller conveys clear marketable general warranty deed."
+
+            lower.contains("sms") || lower.contains("drip") || lower.contains("nurture") || lower.contains("follow-up") ->
+                "💬 **4-Step SMS Revival Drip Sequence**\n\n" +
+                "• **Day 1:** \"Hi [Name], Alex here. Just following up on [Address]—are you still open to a cash offer this month?\"\n" +
+                "• **Day 3:** \"Hey [Name], 2 cash buyers just closed nearby on [Street Name]. We have active capital ready to deploy for [Address]. Let me know if 5 mins works to connect!\"\n" +
+                "• **Day 7:** \"Hi [Name], if price was the hurdle, we can offer flexible terms or leaseback options. Open to a quick brainstorm?\"\n" +
+                "• **Day 14 (Revival):** \"Final check-in regarding [Address] before we reallocate our acquisition funds for the quarter. Should I close your file?\""
+
+            lower.contains("cma") || lower.contains("comp") || lower.contains("market analysis") || lower.contains("appraisal") ->
+                "📈 **Comparative Market Analysis (CMA) Summary**\n\n" +
+                "• **Subject:** 3 Bed / 2 Bath · 1,750 sqft\n" +
+                "• **Comp #1 (0.2 mi):** 1,800 sqft, Renovated -> Sold **$342,000** ($190/sqft)\n" +
+                "• **Comp #2 (0.4 mi):** 1,700 sqft, Original -> Sold **$280,000** ($164/sqft)\n" +
+                "• **Comp #3 (0.3 mi):** 1,775 sqft, Partial Rehab -> Sold **$315,000** ($177/sqft)\n\n" +
+                "📊 **Adjusted Subject ARV:** **$325,000 - $335,000**\nMedian DOM: 18 days. Inventory trend is tight (1.8 months supply)."
+
+            lower.contains("rehab") || lower.contains("repair") || lower.contains("estimate") || lower.contains("cost") ->
+                "🔨 **Itemized Rehab & Repair Cost Estimate (2,100 sqft)**\n\n" +
+                "• **Roof (Architectural Shingles - 25 sq):** $8,500\n" +
+                "• **HVAC (4-Ton 16 SEER Complete System):** $7,200\n" +
+                "• **Kitchen (Shaker Cabinets, Quartz, Stainless Appliances):** $9,500\n" +
+                "• **Bathrooms (2x Modern Vanities, Tile, Fixtures):** $6,000\n" +
+                "• **Flooring (LVP throughout & Baseboards):** $5,800\n" +
+                "• **Interior/Exterior Paint:** $4,500\n" +
+                "• **Contingency & Permits (10%):** $4,150\n\n" +
+                "💰 **Total Estimated Rehab:** **$45,650**"
+
             lower.contains("dispute") || lower.contains("wrong") ->
                 "You can dispute any lead within 2 US business days directly from the lead detail card! Our quality control team reviews every dispute thoroughly."
             lower.contains("skip trace") || lower.contains("credit") ->
@@ -915,7 +962,7 @@ class PortalRepository(
             lower.contains("billing") || lower.contains("invoice") || lower.contains("receipt") ->
                 "All your invoices, caller staffing groups, and Stripe receipts are accessible in the Billing tab."
             else ->
-                "Hello! I'm Remi, your Proptech AI assistant. I can help with leads qualification, dispute status, list orders, or connecting you to your caller team. How can I assist you today?"
+                "Hello! I'm Remi, your PropTech AI assistant. Choose any template above (Deal Underwriting, Cold Call Scripts, Wholesale Contracts, SMS Drips, CMA Comps) or ask me any real estate question!"
         }
     }
 

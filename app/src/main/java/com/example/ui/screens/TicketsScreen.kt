@@ -43,11 +43,6 @@ fun TicketsScreen(
     onReplySupportTicket: (String, String) -> Unit = { _, _ -> },
     onUpdateSupportTicketStatus: (String, String) -> Unit = { _, _ -> }
 ) {
-    var activeTab by remember { mutableStateOf("support") } // "support" or "deals"
-    var showNewTicketDialog by remember { mutableStateOf(false) }
-    var selectedSupportTicket by remember { mutableStateOf<SupportTicketEntity?>(null) }
-    var selectedStatusFilter by remember { mutableStateOf("All") }
-
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -55,89 +50,10 @@ fun TicketsScreen(
     ) {
         Spacer(Modifier.height(14.dp))
 
-        // Top Segmented Bar
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(12.dp))
-                .background(MaterialTheme.colorScheme.surfaceVariant)
-                .padding(4.dp),
-            horizontalArrangement = Arrangement.spacedBy(4.dp)
-        ) {
-            val tabs = listOf(
-                "support" to "Support & Inquiries (${supportTickets.size})",
-                "deals" to "Deal Review Queue (${tickets.size})"
-            )
-            tabs.forEach { (id, label) ->
-                val isSelected = activeTab == id
-                Surface(
-                    shape = RoundedCornerShape(8.dp),
-                    color = if (isSelected) CoralPrimary else Color.Transparent,
-                    modifier = Modifier
-                        .weight(1f)
-                        .clickable { activeTab = id }
-                ) {
-                    Text(
-                        text = label,
-                        fontSize = 12.sp,
-                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                        color = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(vertical = 8.dp),
-                        textAlign = androidx.compose.ui.text.style.TextAlign.Center
-                    )
-                }
-            }
-        }
-
-        Spacer(Modifier.height(14.dp))
-
-        when (activeTab) {
-            "support" -> {
-                SupportTicketsContent(
-                    supportTickets = supportTickets,
-                    selectedStatusFilter = selectedStatusFilter,
-                    onStatusFilterSelected = { selectedStatusFilter = it },
-                    onOpenNewTicket = { showNewTicketDialog = true },
-                    onSelectTicket = { selectedSupportTicket = it }
-                )
-            }
-            "deals" -> {
-                DealReviewTicketsContent(
-                    tickets = tickets,
-                    onAcceptTicket = onAcceptTicket,
-                    onDeclineTicket = onDeclineTicket
-                )
-            }
-        }
-    }
-
-    // New Support Ticket Submission Dialog
-    if (showNewTicketDialog) {
-        NewSupportTicketDialog(
-            onDismiss = { showNewTicketDialog = false },
-            onSubmit = { subject, category, priority, description, relatedLeadId ->
-                onSubmitSupportTicket(subject, category, priority, description, relatedLeadId)
-                showNewTicketDialog = false
-            }
-        )
-    }
-
-    // Support Ticket Detail & Conversation Dialog
-    selectedSupportTicket?.let { ticket ->
-        // Keep updated ticket reference
-        val currentTicket = supportTickets.find { it.id == ticket.id } ?: ticket
-        SupportTicketDetailDialog(
-            ticket = currentTicket,
-            onDismiss = { selectedSupportTicket = null },
-            onSendReply = { reply ->
-                onReplySupportTicket(currentTicket.id, reply)
-            },
-            onCloseTicket = {
-                onUpdateSupportTicketStatus(currentTicket.id, "Closed")
-            },
-            onReopenTicket = {
-                onUpdateSupportTicketStatus(currentTicket.id, "Open")
-            }
+        DealReviewTicketsContent(
+            tickets = tickets,
+            onAcceptTicket = onAcceptTicket,
+            onDeclineTicket = onDeclineTicket
         )
     }
 }

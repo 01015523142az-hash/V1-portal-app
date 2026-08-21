@@ -1,0 +1,49 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="48dp"
+    android:height="48dp"
+    android:viewportWidth="48"
+    android:viewportHeight="48">
+    <!-- Gradient / Background Glow Base -->
+    <path
+        android:fillColor="#0D1629"
+        android:pathData="M8,4h32a4,4 0,0 1,4 4v32a4,4 0,0 1,-4 4H8a4,4 0,0 1,-4 -4V8a4,4 0,0 1,4 -4z" />
+    <!-- Building Silhouettes with AI nodes -->
+    <!-- Left Tower -->
+    <path
+        android:fillColor="#00E5FF"
+        android:pathData="M12,20h7v20h-7z" />
+    <!-- Center AI High-Rise Tower -->
+    <path
+        android:fillColor="#0066FF"
+        android:pathData="M21,11h8v29h-8z" />
+    <!-- Right Tech Tower -->
+    <path
+        android:fillColor="#00E676"
+        android:pathData="M31,17h6v23h-6z" />
+    <!-- Neural AI Circuit Connecting Lines -->
+    <path
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="1.5"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:pathData="M15,15 L25,7 L34,13" />
+    <path
+        android:strokeColor="#00E5FF"
+        android:strokeWidth="1.5"
+        android:strokeLineCap="round"
+        android:pathData="M25,7 L25,11" />
+    <!-- AI Glowing Node Points -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M25,5a2,2 0,1 0,0.001 0z" />
+    <path
+        android:fillColor="#00E5FF"
+        android:pathData="M15,14a1.8,1.8 0,1 0,0.001 0z" />
+    <path
+        android:fillColor="#00E676"
+        android:pathData="M34,12a1.8,1.8 0,1 0,0.001 0z" />
+    <!-- Pulse Spark -->
+    <path
+        android:fillColor="#FFD700"
+        android:pathData="M25,23l1.5,3.5l3.5,1.5l-3.5,1.5l-1.5,3.5l-1.5,-3.5l-3.5,-1.5l3.5,-1.5z" />
+</vector>

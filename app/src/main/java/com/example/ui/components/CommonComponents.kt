@@ -25,6 +25,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.Image
+import androidx.compose.ui.res.painterResource
+import com.example.R
 import com.example.ui.theme.*
 import com.example.viewmodel.CallUiState
 
@@ -39,6 +42,7 @@ fun PortalTopAppBar(
     onOpenNotifications: () -> Unit,
     onCreateCampaignClick: () -> Unit,
     onOpenProfile: () -> Unit,
+    onToggleRemiClick: () -> Unit = {},
     onSignOutClick: () -> Unit
 ) {
     val initials = remember(userName, companyName) {
@@ -60,44 +64,68 @@ fun PortalTopAppBar(
                 modifier = Modifier
                     .fillMaxWidth()
                     .statusBarsPadding()
-                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                    .padding(horizontal = 14.dp, vertical = 10.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                // User Avatar Circle & Greeting (Clickable to open profile)
+                // PropTech AI Brand Logo & User Profile Access
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
                     modifier = Modifier
                         .weight(1f)
                         .clip(RoundedCornerShape(12.dp))
                         .clickable(onClick = onOpenProfile)
-                        .padding(4.dp)
+                        .padding(2.dp)
                         .testTag("top_bar_user_profile_btn")
                 ) {
+                    // PropTech AI Logo Brand Mark
                     Box(
                         modifier = Modifier
-                            .size(44.dp)
-                            .clip(CircleShape)
-                            .background(MaterialTheme.colorScheme.primaryContainer)
-                            .border(1.dp, MaterialTheme.colorScheme.outline, CircleShape),
+                            .size(42.dp)
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(
+                                Brush.linearGradient(
+                                    listOf(PropTechBlue, PropTechIndigo, PropTechCyan)
+                                )
+                            )
+                            .border(1.dp, PropTechCyan.copy(alpha = 0.6f), RoundedCornerShape(12.dp)),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text(
-                            text = initials,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer,
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 15.sp
+                        Image(
+                            painter = painterResource(id = R.drawable.ic_proptech_ai_symbol),
+                            contentDescription = "PropTech AI Logo",
+                            modifier = Modifier.size(30.dp)
                         )
                     }
 
                     Column {
-                        Text(
-                            text = if (userName.isNotBlank()) userName else companyName,
-                            fontSize = 15.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            Text(
+                                text = if (userName.isNotBlank()) userName else companyName,
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurface,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                            // PropTech AI Core Pill
+                            Surface(
+                                shape = RoundedCornerShape(4.dp),
+                                color = PropTechCyan.copy(alpha = 0.15f)
+                            ) {
+                                Text(
+                                    text = "AI CORE",
+                                    fontSize = 8.sp,
+                                    fontWeight = FontWeight.ExtraBold,
+                                    color = PropTechCyan,
+                                    modifier = Modifier.padding(horizontal = 4.dp, vertical = 1.dp)
+                                )
+                            }
+                        }
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(4.dp)
@@ -106,11 +134,11 @@ fun PortalTopAppBar(
                                 modifier = Modifier
                                     .size(6.dp)
                                     .clip(CircleShape)
-                                    .background(SleekSuccessGreen)
+                                    .background(PropTechEmerald)
                             )
                             Text(
-                                text = "View Profile & Settings",
-                                fontSize = 11.sp,
+                                text = "PropTech AI Portal · Active",
+                                fontSize = 10.sp,
                                 color = MaterialTheme.colorScheme.primary,
                                 fontWeight = FontWeight.Medium,
                                 maxLines = 1,
@@ -123,8 +151,38 @@ fun PortalTopAppBar(
                 // Action buttons
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
+                    // Remi AI Top Bar Toggle Button
+                    Surface(
+                        shape = RoundedCornerShape(20.dp),
+                        color = PropTechCyan.copy(alpha = 0.15f),
+                        border = androidx.compose.foundation.BorderStroke(1.dp, PropTechCyan.copy(alpha = 0.6f)),
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(20.dp))
+                            .clickable(onClick = onToggleRemiClick)
+                            .testTag("top_bar_remi_toggle_btn")
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 5.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.SmartToy,
+                                contentDescription = "Remi AI Assistant",
+                                tint = PropTechCyan,
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Text(
+                                text = "Remi AI",
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = PropTechCyan
+                            )
+                        }
+                    }
+
                     // Create Campaign Pill Button
                     Button(
                         onClick = onCreateCampaignClick,
@@ -133,20 +191,20 @@ fun PortalTopAppBar(
                             containerColor = MaterialTheme.colorScheme.primary,
                             contentColor = Color.White
                         ),
-                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
+                        contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp),
                         modifier = Modifier
-                            .height(36.dp)
+                            .height(34.dp)
                             .testTag("create_campaign_top_btn")
                     ) {
-                        Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(16.dp))
-                        Spacer(Modifier.width(4.dp))
-                        Text(text = "Campaign", fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+                        Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(14.dp))
+                        Spacer(Modifier.width(3.dp))
+                        Text(text = "Campaign", fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
                     }
 
                     // Notifications Bell with Alert Dot
                     Box(
                         modifier = Modifier
-                            .size(38.dp)
+                            .size(36.dp)
                             .clip(CircleShape)
                             .background(MaterialTheme.colorScheme.surfaceVariant)
                             .border(1.dp, MaterialTheme.colorScheme.outlineVariant, CircleShape)
@@ -157,14 +215,14 @@ fun PortalTopAppBar(
                             imageVector = if (unreadNotifications > 0) Icons.Default.NotificationsActive else Icons.Outlined.Notifications,
                             contentDescription = "Notifications",
                             tint = if (unreadNotifications > 0) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.size(19.dp)
+                            modifier = Modifier.size(18.dp)
                         )
                         if (unreadNotifications > 0) {
                             Box(
                                 modifier = Modifier
                                     .align(Alignment.TopEnd)
                                     .offset(x = 1.dp, y = (-1).dp)
-                                    .size(16.dp)
+                                    .size(15.dp)
                                     .clip(CircleShape)
                                     .background(SleekAlertRed),
                                 contentAlignment = Alignment.Center
@@ -182,7 +240,7 @@ fun PortalTopAppBar(
                     // Theme Toggle
                     Box(
                         modifier = Modifier
-                            .size(38.dp)
+                            .size(36.dp)
                             .clip(CircleShape)
                             .background(MaterialTheme.colorScheme.surfaceVariant)
                             .border(1.dp, MaterialTheme.colorScheme.outlineVariant, CircleShape)
@@ -193,14 +251,14 @@ fun PortalTopAppBar(
                             imageVector = if (isDarkTheme) Icons.Default.LightMode else Icons.Default.DarkMode,
                             contentDescription = "Toggle Theme",
                             tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.size(18.dp)
+                            modifier = Modifier.size(17.dp)
                         )
                     }
 
                     // Sign Out
                     Box(
                         modifier = Modifier
-                            .size(38.dp)
+                            .size(36.dp)
                             .clip(CircleShape)
                             .background(MaterialTheme.colorScheme.surfaceVariant)
                             .border(1.dp, MaterialTheme.colorScheme.outlineVariant, CircleShape)
@@ -211,7 +269,7 @@ fun PortalTopAppBar(
                             imageVector = Icons.Default.Logout,
                             contentDescription = "Sign Out",
                             tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.size(18.dp)
+                            modifier = Modifier.size(17.dp)
                         )
                     }
                 }
@@ -242,13 +300,14 @@ fun PortalNavigationBar(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 8.dp, vertical = 6.dp),
+                    .padding(horizontal = 4.dp, vertical = 6.dp),
                 horizontalArrangement = Arrangement.SpaceAround,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 val items = listOf(
                     Triple("dashboard", "Dashboard", Icons.Default.Dashboard),
                     Triple("leads", "Leads", Icons.Default.People),
+                    Triple("remi", "Remi AI", Icons.Default.SmartToy),
                     Triple("tickets", "Tickets", Icons.Default.ConfirmationNumber),
                     Triple("buylist", "Buy List", Icons.Default.ReceiptLong),
                     Triple("skiptrace", "Skip Trace", Icons.Default.Search),
