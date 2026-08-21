@@ -50,6 +50,8 @@ fun MainAppScreen(
     val unreadNotifications by portalViewModel.unreadNotificationsCount.collectAsState()
     val chatMessages by portalViewModel.chatMessages.collectAsState()
     val quietHoursSettings by portalViewModel.quietHoursSettings.collectAsState()
+    val isOnline by portalViewModel.isOnline.collectAsState()
+    val lastSyncTimestamp by portalViewModel.lastSyncTimestamp.collectAsState()
 
     // If chat panel is full screen open
     if (uiState.isChatPanelOpen) {
@@ -166,7 +168,12 @@ fun MainAppScreen(
                             onSendDisputeReply = { _, _ -> },
                             isMapView = uiState.isLeadsMapView,
                             onToggleMapView = portalViewModel::setLeadsMapView,
-                            onLogCallMade = portalViewModel::logLeadCallMade
+                            onLogCallMade = portalViewModel::logLeadCallMade,
+                            isOnline = isOnline,
+                            lastSyncTimestamp = lastSyncTimestamp,
+                            isRefreshing = uiState.isRefreshingLeads,
+                            onRefresh = portalViewModel::refreshLeads,
+                            syncStatusMessage = uiState.syncStatusMessage
                         )
                     }
 

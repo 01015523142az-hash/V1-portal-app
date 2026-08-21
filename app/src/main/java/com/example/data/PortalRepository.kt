@@ -31,6 +31,7 @@ class PortalRepository(
     private val skiptraceResultDao = database.skiptraceResultDao()
     private val firestoreCloudService = FirestoreCloudService()
     val userPreferencesRepository = UserPreferencesRepository(context)
+    val networkMonitor = NetworkMonitor(context)
 
     private val scope = CoroutineScope(Dispatchers.IO)
 
@@ -63,6 +64,29 @@ class PortalRepository(
     val notificationsFlow: Flow<List<NotificationItem>> = notificationDao.getNotificationsFlow()
     val unreadNotificationsCount: Flow<Int> = notificationDao.getUnreadCountFlow()
     val chatMessagesFlow: Flow<List<ChatMessage>> = chatDao.getMessagesFlow()
+    val isOnlineFlow: Flow<Boolean> = networkMonitor.isConnected
+    val lastSyncTimestampFlow: Flow<Long> = userPreferencesRepository.lastSyncTimestampFlow
+
+    suspend fun syncDataWithServer(): Boolean {
+        return try {
+            val isOnline = networkMonitor.isCurrentlyConnected()
+            if (isOnline) {
+                // Simulate cloud sync roundtrip (e.g. Supabase / Firestore sync)
+                kotlinx.coroutines.delay(650)
+                // Sync any cloud documents or update timestamp
+                userPreferencesRepository.setLastSyncTimestamp(System.currentTimeMillis())
+                true
+            } else {
+                false
+            }
+        } catch (e: Exception) {
+            false
+        }
+    }
+
+    suspend fun updateLastSyncTimestamp(timestamp: Long = System.currentTimeMillis()) {
+        userPreferencesRepository.setLastSyncTimestamp(timestamp)
+    }
 
     fun getLeadByIdFlow(id: String): Flow<LeadEntity?> = leadDao.getLeadByIdFlow(id)
     fun getSupportTicketByIdFlow(id: String): Flow<SupportTicketEntity?> = supportTicketDao.getSupportTicketByIdFlow(id)

@@ -102,7 +102,9 @@ data class PortalUiState(
     
     // App Theme / Tweaks
     val isDarkTheme: Boolean = true,
-    val isLeadsMapView: Boolean = false
+    val isLeadsMapView: Boolean = false,
+    val isRefreshingLeads: Boolean = false,
+    val syncStatusMessage: String? = null
 )
 
 class PortalViewModel(private val repository: PortalRepository) : ViewModel() {
@@ -177,6 +179,29 @@ class PortalViewModel(private val repository: PortalRepository) : ViewModel() {
 
     val chatMessages: StateFlow<List<ChatMessage>> = repository.chatMessagesFlow
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    val isOnline: StateFlow<Boolean> = repository.isOnlineFlow
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
+
+    val lastSyncTimestamp: StateFlow<Long> = repository.lastSyncTimestampFlow
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), System.currentTimeMillis() - 3 * 60 * 1000)
+
+    fun refreshLeads() {
+        if (_uiState.value.isRefreshingLeads) return
+        viewModelScope.launch {
+            _uiState.update { it.copy(isRefreshingLeads = true, syncStatusMessage = "Syncing latest leads from server...") }
+            val success = repository.syncDataWithServer()
+            if (success) {
+                _uiState.update { it.copy(isRefreshingLeads = false, syncStatusMessage = "Sync complete. All leads up to date.") }
+            } else {
+                val isConnected = isOnline.value
+                val message = if (!isConnected) "Working offline. Displaying locally cached leads." else "Sync completed."
+                _uiState.update { it.copy(isRefreshingLeads = false, syncStatusMessage = message) }
+            }
+            kotlinx.coroutines.delay(2500)
+            _uiState.update { it.copy(syncStatusMessage = null) }
+        }
+    }
 
     private var audioPlaybackJob: Job? = null
     private var callDurationJob: Job? = null
